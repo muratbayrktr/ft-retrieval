@@ -86,7 +86,7 @@ class TRECDataLoader:
     
     def load_qrels(self) -> None:
         """Load all qrels files from the data directory."""
-        qrels_files = list(self.data_dir.glob('qrels*.txt'))
+        qrels_files = list(self.data_dir.glob('qrel*.txt'))
         if not qrels_files:
             logger.warning(f"No qrels files found in {self.data_dir}")
             return

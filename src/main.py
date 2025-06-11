@@ -8,6 +8,7 @@ from logger import get_logger
 import os
 import shutil
 import argparse
+import json
 
 # Get logger instance
 logger = get_logger("main")
@@ -35,8 +36,8 @@ def parse_arguments():
                       help='Path to store the index (default: ./indices/ft_index)')
     parser.add_argument('--trec-data-path', type=str, default='data/query-relJudgments',
                       help='Path to TREC data directory (default: data/query-relJudgments)')
-    parser.add_argument('--k', type=int, default=10,
-                      help='Number of top results to consider for evaluation (default: 10)')
+    parser.add_argument('--k', type=int, default=20,
+                      help='Number of top results to consider for evaluation (default: 20)')
     parser.add_argument('--use-stopwords', action='store_true', default=True,
                       help='Use stopwords during indexing (default: True)')
     parser.add_argument('--no-stopwords', action='store_true',
@@ -46,6 +47,8 @@ def parse_arguments():
     parser.add_argument('--algorithm', type=str, 
                       choices=['tf_idf', 'bm25', 'bm25_plus', 'cosine', 'language_model', 'financial_boost', 'reverse_test', 'random_test'],
                       default='bm25', help='Custom retriever algorithm (default: bm25)')
+    parser.add_argument('--save-results', action='store_true',
+                      help='Save results to a file')
     return parser.parse_args()
 
 def analyze_results(results, qrels, queries):
@@ -156,7 +159,7 @@ def main():
         
         # Show dataset statistics
         stats = trec_loader.get_dataset_stats(filter_collections=['FT'])
-        logger.info(f"Dataset stats (FT collection only): {stats}")
+        logger.info(f"Dataset stats (FT collection only): \n{json.dumps(stats, indent=4)}")
         
         # Filter queries to only those with relevance judgments
         if qrels is not None and len(qrels) > 0:
@@ -177,7 +180,7 @@ def main():
         
         if args.retriever == 'custom':
             from custom_retriever import CustomRetriever
-            retriever = CustomRetriever(indexer.get_index_ref(), verbose=True)
+            retriever = CustomRetriever(indexer.get_index_ref(), verbose=True, debug_mode=False)
             retriever.set_scoring_algorithm(args.algorithm)
             logger.info(f"Using custom retriever with {args.algorithm} algorithm")
             results = retriever.retrieve(query_processor.get_queries(), num_results=1000)
@@ -189,14 +192,20 @@ def main():
         logger.info("Retrieval completed successfully")
         
         # Analyze results before evaluation
-        analyze_results(results, qrels, queries)
+        # analyze_results(results, qrels, queries)
         
         # 4. Evaluation
-        logger.info("\nInitializing evaluator...")
+        logger.info("Initializing evaluator...")
         evaluator = Evaluator(k=args.k)
         if qrels is not None:
             scores = evaluator.evaluate(results, qrels)
-            logger.info(f"Evaluation scores: NDCG@{args.k}: {scores['ndcg']:.4f}, MAP@{args.k}: {scores['map']:.4f}")
+            if args.save_results:
+                ensure_directory('./results')
+                experiment_name = f'{args.retriever}_{args.algorithm}_k{args.k}'
+                if args.rebuild_index:
+                    experiment_name += f'_rebuild_index_{"with" if args.use_stopwords else "without"}_stopwords'
+                with open(f'./results/{experiment_name}.json', 'w+') as f:
+                    json.dump(scores, f, indent=4)
         else:
             logger.warning("No relevance judgments available, skipping evaluation")
             

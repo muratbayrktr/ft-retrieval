@@ -36,15 +36,18 @@ BM25 (no stopwords):   NDCG@10: 0.3116, MAP@10: 0.1165
 **Key Finding**: Stopwords provide ~12-13% improvement over baseline
 
 ### Custom Algorithm Performance
-| Algorithm | NDCG@10 | MAP@10 | vs Baseline |
-|-----------|---------|--------|-------------|
-| Baseline BM25 | 0.3505 | 0.1313 | - |
-| Custom TF-IDF | 0.3505 | 0.1313 | Same |
-| Custom BM25+ | 0.3505 | 0.1313 | Same |
-| Custom Cosine | 0.2618 | 0.0804 | -25% NDCG |
-| Language Model | 0.3505 | 0.1313 | Same |
-| Financial Boost | 0.3505 | 0.1313 | Same |
-| Random Test | 0.0274 | 0.0032 | -92% (verification) |
+## Retrieval Evaluation Results (k=20)
+
+| Method                                      | NDCG   | MAP    | Precision (P) | Recall (R) |
+|---------------------------------------------|--------|--------|----------------|------------|
+| `custom_bm25_k20`                           | 0.3366 | 0.1533 | 0.2152         | 0.2465     |
+| `custom_bm25_plus_k20`                      | 0.3479 | 0.1613 | 0.2217         | 0.2749     |
+| `custom_cosine_k20`                         | 0.1692 | 0.0558 | 0.1152         | 0.1263     |
+| `custom_financial_boost_k20`                | 0.3419 | 0.1616 | 0.2152         | 0.2503     |
+| `custom_language_model_k20`                | 0.3142 | 0.1438 | 0.2015         | 0.2226     |
+| `custom_tf_idf_k20`                         | 0.3398 | 0.1619 | 0.2152         | 0.2547     |
+| `pyterrier_bm25_k20_rebuild_index_with_stopwords` | **0.3633** | **0.1719** | **0.2268**     | **0.2835**   |
+| Random Test | 0.0274 | 0.0032 | - | - | -92% (verification) |
 
 ### Key Insights
 - **System Verification**: Random scoring shows 92% performance drop, proving framework functionality

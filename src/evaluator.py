@@ -35,7 +35,9 @@ class Evaluator:
         # Create evaluation measures
         eval_metrics = [
             pt.measures.NDCG @ self.k,
-            pt.measures.MAP @ self.k
+            pt.measures.MAP @ self.k,
+            pt.measures.P @ self.k,
+            pt.measures.R @ self.k,
         ]
         
         # Use the direct evaluation approach
@@ -44,13 +46,24 @@ class Evaluator:
         # Extract scores
         ndcg_key = f"nDCG@{self.k}"
         map_key = f"AP@{self.k}"
+        p_key = f"P@{self.k}"
+        r_key = f"R@{self.k}"
         
         ndcg_score = scores.get(ndcg_key, 0.0)
         map_score = scores.get(map_key, 0.0)
+        p_score = scores.get(p_key, 0.0)
+        r_score = scores.get(r_key, 0.0)
         
-        logger.info(f"Evaluation completed. NDCG@{self.k}: {ndcg_score:.4f}, MAP@{self.k}: {map_score:.4f}")
+        logger.info(f"""Evaluation completed.
+            NDCG@{self.k}: {ndcg_score:.4f},
+            MAP@{self.k}: {map_score:.4f},
+            P@{self.k}: {p_score:.4f},
+            R@{self.k}: {r_score:.4f}
+""")
         
         return {
             'ndcg': ndcg_score,
-            'map': map_score
+            'map': map_score,
+            'p': p_score,
+            'r': r_score
         } 
